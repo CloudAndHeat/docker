@@ -225,6 +225,59 @@ docker_network 'network_h1 disconnector' do
   action :disconnect
 end
 
+###########
+# network_i
+###########
+
+# set the IP when connecting a container to a network,
+# disconnect and reconnect it, if the IP does not match
+
+docker_network 'network_i' do
+  subnet "172.30.0.0/24"
+  action :create
+end
+
+docker_container 'container1-network_i' do
+  repo 'alpine'
+  tag '3.1'
+  command 'sh -c "trap exit 0 SIGTERM; while :; do sleep 1; done"'
+  not_if { ::File.exist?('/marker_network_i') }
+  action :run
+end
+
+docker_container 'container2-network_i' do
+  repo 'alpine'
+  tag '3.1'
+  command 'sh -c "trap exit 0 SIGTERM; while :; do sleep 1; done"'
+  not_if { ::File.exist?('/marker_network_i') }
+  action :run
+end
+
+file '/marker_network_i' do
+  action :create
+end
+
+docker_network 'network_i connector1' do
+  container 'container1-network_i'
+  network_name 'network_i'
+  ip '172.30.0.10'
+  action :connect
+end
+
+docker_network 'network_i connector2a' do
+  container 'container2-network_i'
+  network_name 'network_i'
+  ip '172.30.0.11'
+  action :connect
+end
+
+docker_network 'network_i connector2b' do
+  container 'container2-network_i'
+  network_name 'network_i'
+  ip '172.30.0.12'
+  action :connect
+end
+
 ##############
 # network_ipv6
 ##############

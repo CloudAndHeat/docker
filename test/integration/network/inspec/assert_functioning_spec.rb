@@ -193,6 +193,22 @@ describe command("docker network inspect -f '{{ range $c:=.Containers }}{{ $c.Na
   its(:stdout) { should match 'container1-network_h' }
 end
 
+###########
+# network_i
+###########
+
+describe command("docker network ls -qf 'name=network_i$'") do
+  its(:exit_status) { should eq 0 }
+  its(:stdout) { should_not be_empty }
+end
+
+describe command("docker network inspect -f '{{ range $c:=.Containers }}{{ $c.Name }} {{ $c.IPv4Address }}|{{ end }}' network_i") do
+  its(:exit_status) { should eq 0 }
+  its(:stdout) { should match /container1-network_i 172.30.0.10\/24\|/ }
+  its(:stdout) { should match /container2-network_i 172.30.0.12\/24\|/ }
+  its(:stdout) { should_not match /container2-network_i 172.30.0.11\/24\|/ }
+end
+
 ##############
 # network_ipv4
 ##############
